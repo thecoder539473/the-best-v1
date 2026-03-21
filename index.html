@@ -1,167 +1,187 @@
 <README></README>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>The Best</title>
+<title>The Best OS</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
+    font-family: Arial;
+    background: linear-gradient(135deg,#1e293b,#0f172a);
     color: white;
+    overflow: hidden;
 }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px;
-    background: rgba(0,0,0,0.4);
+/* DESKTOP */
+#desktop {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
 }
 
-button {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: none;
-    background: #6366f1;
-    color: white;
+/* ICONS */
+.icon {
+    width: 80px;
+    text-align: center;
+    margin: 20px;
     cursor: pointer;
 }
 
-.container {
-    text-align: center;
-    margin-top: 60px;
+/* WINDOWS */
+.window {
+    position: absolute;
+    width: 500px;
+    height: 350px;
+    background: #111;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.hidden { display:none; }
-
-.card {
-    margin: 20px auto;
-    padding: 20px;
-    width: 320px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
+.titlebar {
+    background: #222;
+    padding: 5px;
+    cursor: move;
+    display:flex;
+    justify-content:space-between;
 }
 
-/* workspace */
-.workspace {
-    background: #f8fafc;
-    color: black;
-    height: 100vh;
+.content {
+    padding: 10px;
+    height: calc(100% - 30px);
+    overflow:auto;
 }
 
-.page {
-    max-width: 800px;
-    margin: 30px auto;
-    background: white;
-    padding: 30px;
-}
-
-textarea {
+/* TASKBAR */
+#taskbar {
+    position: absolute;
+    bottom: 0;
     width: 100%;
-    height: 300px;
-    border: none;
-    outline: none;
-    font-family: sans-serif;
+    height: 40px;
+    background: rgba(0,0,0,0.6);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 0 10px;
 }
 
-/* shortcuts */
-.apps button {
-    margin: 5px;
+/* CLOCK */
+#clock {
+    font-size: 14px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-    <h2>🚀 The Best</h2>
-    <div>
-        <button onclick="showPage('home')">Home</button>
-        <button onclick="showPage('notesPage')">Notes</button>
-        <button onclick="showPage('slides')">Slides</button>
-        <button onclick="showPage('settings')">Settings</button>
-    </div>
-</header>
+<div id="desktop">
 
-<!-- HOME -->
-<div id="home" class="container">
-    <h1>Dashboard</h1>
+    <!-- ICONS -->
+    <div class="icon" onclick="openApp('browser')">🌐<br>Browser</div>
+    <div class="icon" onclick="openApp('notes')">📝<br>Notes</div>
+    <div class="icon" onclick="openApp('slides')">📊<br>Slides</div>
 
-    <input id="search" placeholder="Search..."
-        onkeydown="if(event.key==='Enter'){search()}">
-
-    <div class="apps">
-        <button onclick="go('https://google.com')">Google</button>
-        <button onclick="go('https://youtube.com')">YouTube</button>
-    </div>
 </div>
 
-<!-- NOTES -->
-<div id="notesPage" class="hidden workspace">
-    <div class="page">
-        <h2>Notes</h2>
-        <textarea id="notes"></textarea>
-    </div>
-</div>
-
-<!-- SLIDES -->
-<div id="slides" class="hidden workspace">
-    <div class="page">
-        <h2>Presentation</h2>
-        <p>• Topic</p>
-        <p>• Key ideas</p>
-        <p>• Summary</p>
-    </div>
-</div>
-
-<!-- SETTINGS -->
-<div id="settings" class="container hidden">
-    <h1>Settings</h1>
-    <div class="card">
-        <button onclick="openBlank()">Open in Clean Window</button>
-    </div>
+<!-- TASKBAR -->
+<div id="taskbar">
+    <div>The Best OS</div>
+    <div id="clock"></div>
 </div>
 
 <script>
-function hideAll() {
-    ['home','notesPage','slides','settings'].forEach(id =>
-        document.getElementById(id).classList.add('hidden'));
+let z = 1;
+
+// CREATE WINDOW
+function openApp(app) {
+    let win = document.createElement("div");
+    win.className = "window";
+    win.style.top = "100px";
+    win.style.left = "100px";
+    win.style.zIndex = z++;
+
+    win.innerHTML = `
+        <div class="titlebar">
+            <span>${app}</span>
+            <button onclick="this.closest('.window').remove()">X</button>
+        </div>
+        <div class="content">${getAppContent(app)}</div>
+    `;
+
+    document.getElementById("desktop").appendChild(win);
+    drag(win);
 }
 
-function showPage(p) {
-    hideAll();
-    document.getElementById(p).classList.remove('hidden');
+// APP CONTENT
+function getAppContent(app) {
+
+    if(app==="browser"){
+        return `
+        <input id="searchBox" placeholder="Search..."
+        onkeydown="if(event.key==='Enter'){goSearch(this.value)}">
+        <iframe id="frame" style="width:100%;height:80%;border:none;"></iframe>
+        `;
+    }
+
+    if(app==="notes"){
+        return `
+        <textarea id="notes" style="width:100%;height:90%;"></textarea>
+        `;
+    }
+
+    if(app==="slides"){
+        return `
+        <h3>Presentation</h3>
+        <p>• Idea 1</p>
+        <p>• Idea 2</p>
+        `;
+    }
 }
 
-function search() {
-    let q = document.getElementById("search").value;
-    window.location.href = "https://google.com/search?q="+q;
+// SEARCH
+function goSearch(q){
+    document.getElementById("frame").src =
+    "https://bing.com/search?q="+encodeURIComponent(q);
 }
 
-function go(url) {
-    window.location.href = url;
+// DRAGGING
+function drag(el) {
+    let bar = el.querySelector(".titlebar");
+    let offsetX, offsetY;
+
+    bar.onmousedown = (e) => {
+        offsetX = e.clientX - el.offsetLeft;
+        offsetY = e.clientY - el.offsetTop;
+
+        document.onmousemove = (e) => {
+            el.style.left = e.clientX - offsetX + "px";
+            el.style.top = e.clientY - offsetY + "px";
+        };
+
+        document.onmouseup = () => {
+            document.onmousemove = null;
+        };
+    };
 }
 
-function openBlank() {
-    let win = window.open("about:blank");
-    win.document.write(`<iframe src="${location.href}" style="width:100%;height:100%;border:none;"></iframe>`);
-}
+// CLOCK
+setInterval(()=>{
+    document.getElementById("clock").innerText =
+    new Date().toLocaleTimeString();
+},1000);
 
 // SAVE NOTES
-let notes = document.getElementById("notes");
-notes.value = localStorage.getItem("notes") || "";
-
-notes.addEventListener("input", ()=>{
-    localStorage.setItem("notes", notes.value);
+document.addEventListener("input", e=>{
+    if(e.target.id==="notes"){
+        localStorage.setItem("notes", e.target.value);
+    }
 });
 
-// simple shortcuts
-document.addEventListener("keydown", e=>{
-    if(e.key==="1") showPage('home');
-    if(e.key==="2") showPage('notesPage');
-    if(e.key==="3") showPage('slides');
+document.addEventListener("focusin", e=>{
+    if(e.target.id==="notes"){
+        e.target.value = localStorage.getItem("notes") || "";
+    }
 });
 </script>
 
