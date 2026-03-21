@@ -1,189 +1,178 @@
 <README></README>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>The Best OS</title>
-
+<title>The Best Ultimate Web OS</title>
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: linear-gradient(135deg,#1e293b,#0f172a);
-    color: white;
-    overflow: hidden;
-}
-
-/* DESKTOP */
-#desktop {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-}
-
-/* ICONS */
-.icon {
-    width: 80px;
-    text-align: center;
-    margin: 20px;
-    cursor: pointer;
-}
-
-/* WINDOWS */
-.window {
-    position: absolute;
-    width: 500px;
-    height: 350px;
-    background: #111;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.titlebar {
-    background: #222;
-    padding: 5px;
-    cursor: move;
-    display:flex;
-    justify-content:space-between;
-}
-
-.content {
-    padding: 10px;
-    height: calc(100% - 30px);
-    overflow:auto;
-}
-
-/* TASKBAR */
-#taskbar {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 40px;
-    background: rgba(0,0,0,0.6);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding: 0 10px;
-}
-
-/* CLOCK */
-#clock {
-    font-size: 14px;
-}
+body{margin:0;font-family:Arial;overflow:hidden;}
+#login{position:absolute;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:#0f172a;color:white;}
+#desktop{width:100vw;height:100vh;position:absolute;display:none;background-size:cover;}
+.icon{margin:20px;cursor:pointer;display:inline-block;text-align:center;width:80px;}
+#taskbar{position:absolute;bottom:0;width:100%;height:40px;background:rgba(0,0,0,0.6);display:flex;justify-content:space-between;align-items:center;padding:0 10px;color:white;}
+#startMenu{position:absolute;bottom:40px;left:10px;width:200px;background:#111;display:none;padding:10px;}
+.startItem{padding:5px;cursor:pointer;}
+.window{position:absolute;width:500px;height:350px;background:#1e293b;color:white;border-radius:10px;resize:both;overflow:hidden;}
+.titlebar{background:#111;padding:5px;cursor:move;display:flex;justify-content:space-between;}
+.content{padding:10px;height:calc(100% - 30px);overflow:auto;}
+textarea{width:100%;height:200px;}
+iframe{width:100%;height:200px;border:none;}
+button{cursor:pointer;}
 </style>
 </head>
-
 <body>
 
+<!-- LOGIN -->
+<div id="login">
+  <div>
+    <h2>Login</h2>
+    <input id="user" placeholder="Username"><br><br>
+    <button onclick="login()">Enter</button>
+  </div>
+</div>
+
+<!-- DESKTOP -->
 <div id="desktop">
+  <div class="icon" onclick="openApp('browser')">🌐<br>Browser</div>
+  <div class="icon" onclick="openApp('notes')">📝<br>Notes</div>
+  <div class="icon" onclick="openApp('slides')">📊<br>Slides</div>
+  <div class="icon" onclick="openApp('files')">📁<br>Files</div>
+  <div class="icon" onclick="openApp('settings')">⚙️<br>Settings</div>
+</div>
 
-    <!-- ICONS -->
-    <div class="icon" onclick="openApp('browser')">🌐<br>Browser</div>
-    <div class="icon" onclick="openApp('notes')">📝<br>Notes</div>
-    <div class="icon" onclick="openApp('slides')">📊<br>Slides</div>
-
+<!-- START MENU -->
+<div id="startMenu">
+  <div class="startItem" onclick="openApp('browser')">Browser</div>
+  <div class="startItem" onclick="openApp('notes')">Notes</div>
+  <div class="startItem" onclick="openApp('slides')">Slides</div>
+  <div class="startItem" onclick="openApp('files')">Files</div>
+  <div class="startItem" onclick="openApp('settings')">Settings</div>
 </div>
 
 <!-- TASKBAR -->
 <div id="taskbar">
-    <div>The Best OS</div>
-    <div id="clock"></div>
+  <button onclick="toggleStart()">☰</button>
+  <span>The Best Ultimate Web OS</span>
+  <span id="clock"></span>
 </div>
 
 <script>
-let z = 1;
+let z=1;
 
-// CREATE WINDOW
-function openApp(app) {
-    let win = document.createElement("div");
-    win.className = "window";
-    win.style.top = "100px";
-    win.style.left = "100px";
-    win.style.zIndex = z++;
+// LOGIN
+function login(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("desktop").style.display="block";
+}
 
-    win.innerHTML = `
-        <div class="titlebar">
-            <span>${app}</span>
-            <button onclick="this.closest('.window').remove()">X</button>
-        </div>
-        <div class="content">${getAppContent(app)}</div>
-    `;
+// START MENU
+function toggleStart(){
+  let m=document.getElementById("startMenu");
+  m.style.display = m.style.display==="block"?"none":"block";
+}
 
-    document.getElementById("desktop").appendChild(win);
-    drag(win);
+// OPEN APP
+function openApp(app){
+  let win=document.createElement("div");
+  win.className="window";
+  win.style.top="100px";
+  win.style.left="100px";
+  win.style.zIndex=z++;
+
+  win.innerHTML=`
+    <div class="titlebar">
+      <span>${app}</span>
+      <div>
+        <button onclick="this.closest('.window').remove()">X</button>
+      </div>
+    </div>
+    <div class="content">${appContent(app)}</div>
+  `;
+
+  document.getElementById("desktop").appendChild(win);
+  drag(win);
+  snap(win);
 }
 
 // APP CONTENT
-function getAppContent(app) {
-
-    if(app==="browser"){
-        return `
-        <input id="searchBox" placeholder="Search..."
-        onkeydown="if(event.key==='Enter'){goSearch(this.value)}">
-        <iframe id="frame" style="width:100%;height:80%;border:none;"></iframe>
-        `;
-    }
-
-    if(app==="notes"){
-        return `
-        <textarea id="notes" style="width:100%;height:90%;"></textarea>
-        `;
-    }
-
-    if(app==="slides"){
-        return `
-        <h3>Presentation</h3>
-        <p>• Idea 1</p>
-        <p>• Idea 2</p>
-        `;
-    }
+function appContent(app){
+  if(app==="browser"){
+    return `<input id="searchBox" placeholder="Search..." onkeydown="if(event.key==='Enter'){goSearch(this.value)}"><br>
+    <button onclick="goBack()">⬅ Back</button>
+    <iframe id="frame"></iframe>`;
+  }
+  if(app==="notes"){
+    return `<textarea id="notesArea"></textarea>`;
+  }
+  if(app==="slides"){
+    return `<h3>Presentation</h3><p>• Idea 1</p><p>• Idea 2</p><p>• Conclusion</p>`;
+  }
+  if(app==="files"){
+    return `<div>📄 Homework.txt</div><div>📁 Projects</div>`;
+  }
+  if(app==="settings"){
+    return `<button onclick="setWall('blue')">Blue Theme</button>
+            <button onclick="setWall('dark')">Dark Theme</button>`;
+  }
 }
 
-// SEARCH
+// SEARCH FUNCTIONS
+let historyStack=[];
 function goSearch(q){
-    document.getElementById("frame").src =
-    "https://bing.com/search?q="+encodeURIComponent(q);
+  let frame=document.getElementById("frame");
+  let engine="https://bing.com/search?q=";
+  historyStack.push(frame.src);
+  frame.src=engine+encodeURIComponent(q);
+}
+function goBack(){
+  let frame=document.getElementById("frame");
+  if(historyStack.length>0){
+    frame.src=historyStack.pop();
+  }
 }
 
-// DRAGGING
-function drag(el) {
-    let bar = el.querySelector(".titlebar");
-    let offsetX, offsetY;
-
-    bar.onmousedown = (e) => {
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
-
-        document.onmousemove = (e) => {
-            el.style.left = e.clientX - offsetX + "px";
-            el.style.top = e.clientY - offsetY + "px";
-        };
-
-        document.onmouseup = () => {
-            document.onmousemove = null;
-        };
+// DRAG
+function drag(el){
+  let bar=el.querySelector(".titlebar");
+  bar.onmousedown=e=>{
+    let x=e.clientX-el.offsetLeft;
+    let y=e.clientY-el.offsetTop;
+    document.onmousemove=e=>{
+      el.style.left=e.clientX-x+"px";
+      el.style.top=e.clientY-y+"px";
     };
+    document.onmouseup=()=>document.onmousemove=null;
+  };
+}
+
+// SNAP
+function snap(el){
+  el.onmouseup=()=>{
+    if(el.offsetLeft<50){
+      el.style.left="0"; el.style.width="50%";
+    }
+  };
+}
+
+// WALLPAPER
+function setWall(type){
+  let d=document.getElementById("desktop");
+  if(type==="blue") d.style.background="linear-gradient(#1e3a8a,#0f172a)";
+  if(type==="dark") d.style.background="#000";
 }
 
 // CLOCK
 setInterval(()=>{
-    document.getElementById("clock").innerText =
-    new Date().toLocaleTimeString();
+  document.getElementById("clock").innerText=new Date().toLocaleTimeString();
 },1000);
 
-// SAVE NOTES
-document.addEventListener("input", e=>{
-    if(e.target.id==="notes"){
-        localStorage.setItem("notes", e.target.value);
-    }
+// NOTES PERSISTENCE
+document.addEventListener("input",e=>{
+  if(e.target.id==="notesArea") localStorage.setItem("notes",e.target.value);
 });
-
-document.addEventListener("focusin", e=>{
-    if(e.target.id==="notes"){
-        e.target.value = localStorage.getItem("notes") || "";
-    }
+document.addEventListener("focusin",e=>{
+  if(e.target.id==="notesArea") e.target.value=localStorage.getItem("notes")||"";
 });
 </script>
-
 </body>
 </html>
