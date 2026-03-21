@@ -3,119 +3,166 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cool Dashboard</title>
+<title>The Best</title>
+
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #1e1e2f, #3a3a5a);
-        color: white;
-    }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+}
 
-    header {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px 20px;
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(10px);
-    }
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(0,0,0,0.4);
+}
 
-    button {
-        padding: 8px 12px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        background: #5a5aff;
-        color: white;
-    }
+button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #6366f1;
+    color: white;
+    cursor: pointer;
+}
 
-    .container {
-        text-align: center;
-        margin-top: 80px;
-    }
+.container {
+    text-align: center;
+    margin-top: 60px;
+}
 
-    input {
-        width: 60%;
-        padding: 12px;
-        border-radius: 10px;
-        border: none;
-        font-size: 16px;
-    }
+.hidden { display:none; }
 
-    .card {
-        margin: 20px auto;
-        padding: 20px;
-        width: 300px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 15px;
-        backdrop-filter: blur(10px);
-    }
+.card {
+    margin: 20px auto;
+    padding: 20px;
+    width: 320px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+}
 
-    .hidden {
-        display: none;
-    }
+/* workspace */
+.workspace {
+    background: #f8fafc;
+    color: black;
+    height: 100vh;
+}
+
+.page {
+    max-width: 800px;
+    margin: 30px auto;
+    background: white;
+    padding: 30px;
+}
+
+textarea {
+    width: 100%;
+    height: 300px;
+    border: none;
+    outline: none;
+    font-family: sans-serif;
+}
+
+/* shortcuts */
+.apps button {
+    margin: 5px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-    <h2>✨ Dashboard</h2>
+    <h2>🚀 The Best</h2>
     <div>
         <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('notesPage')">Notes</button>
+        <button onclick="showPage('slides')">Slides</button>
         <button onclick="showPage('settings')">Settings</button>
     </div>
 </header>
 
+<!-- HOME -->
 <div id="home" class="container">
-    <h1>Welcome 👋</h1>
+    <h1>Dashboard</h1>
 
-    <!-- Search Bar -->
-    <input type="text" id="search" placeholder="Search Google..."
+    <input id="search" placeholder="Search..."
         onkeydown="if(event.key==='Enter'){search()}">
 
-    <div class="card">
-        <h3>Quick Info</h3>
-        <p id="time"></p>
+    <div class="apps">
+        <button onclick="go('https://google.com')">Google</button>
+        <button onclick="go('https://youtube.com')">YouTube</button>
     </div>
 </div>
 
-<div id="settings" class="container hidden">
-    <h1>⚙️ Settings</h1>
+<!-- NOTES -->
+<div id="notesPage" class="hidden workspace">
+    <div class="page">
+        <h2>Notes</h2>
+        <textarea id="notes"></textarea>
+    </div>
+</div>
 
+<!-- SLIDES -->
+<div id="slides" class="hidden workspace">
+    <div class="page">
+        <h2>Presentation</h2>
+        <p>• Topic</p>
+        <p>• Key ideas</p>
+        <p>• Summary</p>
+    </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="container hidden">
+    <h1>Settings</h1>
     <div class="card">
-        <h3>About:Blank Cloak</h3>
-        <button onclick="openBlank()">Open in about:blank</button>
+        <button onclick="openBlank()">Open in Clean Window</button>
     </div>
 </div>
 
 <script>
-function showPage(page) {
-    document.getElementById('home').classList.add('hidden');
-    document.getElementById('settings').classList.add('hidden');
-    document.getElementById(page).classList.remove('hidden');
+function hideAll() {
+    ['home','notesPage','slides','settings'].forEach(id =>
+        document.getElementById(id).classList.add('hidden'));
+}
+
+function showPage(p) {
+    hideAll();
+    document.getElementById(p).classList.remove('hidden');
 }
 
 function search() {
-    let query = document.getElementById("search").value;
-    window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(query);
+    let q = document.getElementById("search").value;
+    window.location.href = "https://google.com/search?q="+q;
 }
 
-// Live clock
-function updateTime() {
-    let now = new Date();
-    document.getElementById("time").innerText = now.toLocaleTimeString();
+function go(url) {
+    window.location.href = url;
 }
-setInterval(updateTime, 1000);
 
-// about:blank cloaking
 function openBlank() {
-    let win = window.open("about:blank", "_blank");
-    win.document.write(`
-        <iframe src="${window.location.href}" 
-        style="width:100%; height:100%; border:none;"></iframe>
-    `);
+    let win = window.open("about:blank");
+    win.document.write(`<iframe src="${location.href}" style="width:100%;height:100%;border:none;"></iframe>`);
 }
+
+// SAVE NOTES
+let notes = document.getElementById("notes");
+notes.value = localStorage.getItem("notes") || "";
+
+notes.addEventListener("input", ()=>{
+    localStorage.setItem("notes", notes.value);
+});
+
+// simple shortcuts
+document.addEventListener("keydown", e=>{
+    if(e.key==="1") showPage('home');
+    if(e.key==="2") showPage('notesPage');
+    if(e.key==="3") showPage('slides');
+});
 </script>
 
 </body>
