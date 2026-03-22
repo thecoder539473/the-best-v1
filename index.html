@@ -4,228 +4,458 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>The Best WebOS - ULTRA</title>
+<title>The Best WebOS - MULTIPLAYER GOD MODE</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { margin:0; overflow:hidden; font-family:sans-serif; }
 .window { position:absolute; }
 .icon { cursor:pointer; user-select:none; }
+.glow { text-shadow: 0 0 10px yellow, 0 0 20px orange; }
 </style>
 </head>
 <body class="bg-black text-white">
 
-<!-- LOGIN SCREEN -->
-<div id="login" class="w-screen h-screen flex items-center justify-center bg-black">
+<!-- LOGIN -->
+<div id="login" class="w-screen h-screen flex items-center justify-center">
   <div class="text-center">
-    <h1 class="text-2xl mb-4">The Best OS 🔐</h1>
+    <h1 class="text-3xl glow mb-4">⚡ GOD MODE ACCESS ⚡</h1>
     <input id="user" placeholder="Username" class="bg-gray-800 p-2 mb-2"><br>
     <input id="pass" type="password" placeholder="Password" class="bg-gray-800 p-2 mb-2"><br>
-    <button onclick="login()" class="bg-blue-600 px-4 py-2 rounded">Login</button>
-    <div id="loginMsg" class="text-red-500 mt-2"></div>
+    <button onclick="loginUser()" class="bg-blue-600 px-4 py-2 rounded">ENTER</button>
+    <div id="loginMsg"></div>
   </div>
 </div>
 
 <!-- DESKTOP -->
-<div id="desktop" class="hidden w-screen h-screen bg-gradient-to-br from-gray-900 to-black relative">
-
-<div class="p-4 space-y-4">
+<div id="desktop" class="hidden w-screen h-screen bg-gradient-to-br from-gray-900 to-black">
+<div class="p-4 space-y-3">
+<div class="icon" onclick="openApp('ai')">🤖 AI</div>
 <div class="icon" onclick="openApp('terminal')">🖥️ Terminal</div>
 <div class="icon" onclick="openApp('files')">📁 Files</div>
+<div class="icon" onclick="openApp('chat')">💬 Chat</div>
 <div class="icon" onclick="openApp('browser')">🌐 Browser</div>
-<div class="icon" onclick="openApp('store')">🛒 Store</div>
-<div class="icon" onclick="changeBG()">🎨 Theme</div>
 </div>
-
-<div class="absolute bottom-0 w-full h-12 bg-gray-800 flex items-center px-4 gap-3">
+<div class="absolute bottom-0 w-full bg-gray-800 flex justify-between px-4 py-2">
 <span id="userLabel"></span>
-<div id="taskbarApps" class="flex gap-2"></div>
-<div class="ml-auto" id="clock"></div>
+<span id="clock"></span>
+<span id="usersOnline" class="text-green-400"></span>
 </div>
-
 </div>
 
 <div id="windows"></div>
 
 <script>
-// -------- LOGIN SYSTEM --------
-let attempts = 0;
+// LOGIN
+let username = '';
+function loginUser(){
+const userEl = document.getElementById('user');
+const passEl = document.getElementById('pass');
+const loginEl = document.getElementById('login');
+const desktopEl = document.getElementById('desktop');
+const labelEl = document.getElementById('userLabel');
+const msgEl = document.getElementById('loginMsg');
 
-function login(){
-let name=document.getElementById('user').value;
-let pass=document.getElementById('pass').value;
-let msg=document.getElementById('loginMsg');
-
-const USERNAME="admin";
-const PASSWORD="1234";
-
-if(attempts >= 3){
-  msg.innerText = "SYSTEM LOCKED";
-  return;
+if(userEl.value==='admin' && passEl.value==='1234'){
+  username = userEl.value;
+  localStorage.setItem('user', username);
+  loginEl.style.display='none';
+  desktopEl.classList.remove('hidden');
+  labelEl.innerText='🔥 '+username.toUpperCase()+' 🔥';
+  connectSocket();
+}else{
+  msgEl.innerText='DENIED';
+}
 }
 
-if(name!==USERNAME || pass!==PASSWORD){
-  attempts++;
-  msg.innerText = `ACCESS DENIED (${attempts}/3)`;
-  msg.classList.add('animate-pulse');
-  document.body.classList.add('bg-red-900');
-  setTimeout(()=>document.body.classList.remove('bg-red-900'),300);
-  return;
-}
-
-msg.innerText = "ACCESS GRANTED";
-msg.classList.remove('text-red-500');
-msg.classList.add('text-green-400');
-
-setTimeout(()=>{
-  let styledName = `🔥 ${name.toUpperCase()} 🔥`;
-  localStorage.setItem('user',name);
-
-  document.getElementById('login').style.display='none';
-  document.getElementById('desktop').classList.remove('hidden');
-
-  let label = document.getElementById('userLabel');
-  label.innerText = styledName;
-  label.classList.add('font-bold','text-yellow-400','tracking-widest');
-},800);
-}
-
-window.onload = () => { attempts = 0; };
-
-// -------- STATE --------
-let zIndex=1;
-let fileSystem=JSON.parse(localStorage.getItem('fs')||'{}');
-let bgIndex=0;
-const bgs=["from-gray-900 to-black","from-blue-900 to-black","from-purple-900 to-black"];
-
-function saveFS(){localStorage.setItem('fs',JSON.stringify(fileSystem));}
-
-// -------- CLOCK --------
+// CLOCK
 setInterval(()=>{
-document.getElementById('clock').innerText=new Date().toLocaleTimeString();
+  const clockEl = document.getElementById('clock');
+  if(clockEl) clockEl.innerText=new Date().toLocaleTimeString();
 },1000);
 
-// -------- WINDOWS --------
-function createWindow(title,content){
-const win=document.createElement('div');
-win.className='window top-20 left-20 w-[720px] bg-gray-900 border border-gray-700 rounded-2xl shadow-lg';
-win.style.zIndex=zIndex++;
-
-win.innerHTML=`
-<div class="flex justify-between bg-gray-800 px-3 py-2 cursor-move">
-<span>${title}</span>
-<div>
-<button onclick="minWin(this)">—</button>
-<button onclick="closeWin(this)">✖</button>
-</div>
-</div>
-<div class="p-3">${content}</div>`;
-
-win.onmousedown=()=>win.style.zIndex=zIndex++;
-makeDraggable(win);
-
-document.getElementById('windows').appendChild(win);
-addTaskbar(title,win);
+// WINDOWS
+let z=1;
+function win(t,c){
+let d=document.createElement('div');
+d.className='window bg-gray-900 p-2 rounded';
+d.style='top:50px;left:50px;width:400px;z-index:'+z++;
+d.innerHTML=`<div class='flex justify-between cursor-move'>${t}<button onclick='this.parentElement.parentElement.remove()'>x</button></div>${c}`;
+d.onmousedown=()=>d.style.zIndex=z++;
+drag(d);
+document.getElementById('windows').appendChild(d);
 }
 
-function closeWin(btn){btn.closest('.window').remove();}
-function minWin(btn){btn.closest('.window').style.display='none';}
+// SOCKET
+let socket;
+function connectSocket(){
+try{
+socket = new WebSocket('ws://localhost:3000');
 
-function addTaskbar(title,win){
-let btn=document.createElement('button');
-btn.innerText=title;
-btn.onclick=()=>win.style.display='block';
-document.getElementById('taskbarApps').appendChild(btn);
-}
-
-// -------- APPS --------
-let apps={
-calculator:()=>createWindow('Calculator',`<input oninput="this.value=eval(this.value||0)" class='w-full bg-black'>`)
+socket.onopen = ()=>{
+socket.send(JSON.stringify({type:'join', user: username}));
 };
 
-function openApp(app){
-if(app==='terminal'){
-createWindow('Terminal',`<div id='term'></div><input id='cmd' class='w-full bg-black'>`);
+socket.onmessage = (msg)=>{
+let data = JSON.parse(msg.data);
+
+if(data.type==='users'){
+let el = document.getElementById('usersOnline');
+if(el) el.innerText = '👥 '+data.count+' online';
+}
+
+if(data.type==='chat'){
+let chatBox = document.getElementById('chatBox');
+if(chatBox){
+chatBox.innerHTML += `<div><b>${data.user}:</b> ${data.msg}</div>`;
+}
+}
+};
+}catch(e){
+console.log('Socket failed');
+}
+}
+
+// APPS
+function openApp(a){
+if(a==='ai') win('AI',`
+<div id='aiChat' class='h-40 overflow-y-auto bg-black p-2 mb-2'></div>
+<div class='flex gap-2'>
+<input id='aiInput' class='flex-1 bg-gray-800 p-2' placeholder='Ask...'>
+<button onclick='sendAI()'>Send</button>
+<button onclick='voiceAI()'>🎤</button>
+</div>
+`);
+
+if(a==='terminal') win('Terminal',`<input onkeydown="if(event.key==='Enter')cmd(this)">`);
+
+if(a==='files') win('Files',`<button onclick='newFile()'>New</button><div id='files'></div>`);
+
+if(a==='chat') win('Chat',`
+<div id='chatBox' class='h-40 overflow-y-auto'></div>
+<input id='chatInput'><button onclick='sendChat()'>Send</button>
+`);
+
+if(a==='browser'){
+  win('Browser',`
+  <div class='flex gap-1 mb-2'>
+    <button onclick='browserBack(this)'>◀</button>
+    <button onclick='browserForward(this)'>▶</button>
+    <button onclick='browserNewTab(this)'>＋</button>
+    <input class='url flex-1 bg-gray-800 p-1' placeholder='Enter URL'>
+    <button onclick='browserGo(this)'>Go</button>
+  </div>
+  <iframe class='w-full h-60 bg-white'></iframe>
+  `);
+}
+}
+
+// AI
+function speak(text){
+if(!('speechSynthesis' in window)) return;
+let u = new SpeechSynthesisUtterance(text);
+speechSynthesis.speak(u);
+}
+
+function sendAI(){
+let input = document.getElementById('aiInput');
+let chat = document.getElementById('aiChat');
+if(!input || !chat) return;
+
+let m = input.value.trim();
+if(!m) return;
+
+chat.innerHTML += `<div>> ${m}</div>`;
+let r = aiBrain(m);
+
 setTimeout(()=>{
-document.getElementById('cmd').onkeydown=e=>{if(e.key==='Enter') runCmd(e.target)};
-},100);
-}
+chat.innerHTML += `<div class='text-green-400'>${r}</div>`;
+chat.scrollTop = chat.scrollHeight;
+speak(r);
+},200);
 
-if(app==='browser'){
-createWindow('Browser',`<input class='url bg-black w-full'><button onclick='newTab(this)'>Go</button><iframe class='w-full h-80 bg-white'></iframe>`);
-}
-
-if(app==='files'){
-let list=Object.keys(fileSystem).map(f=>`<div onclick="openFile('${f}')">📄 ${f}</div>`).join('');
-createWindow('Files',`${list}<input id='nf'><button onclick='createFile(this)'>New</button>`);
-}
-
-if(app==='store'){
-let list=Object.keys(apps).map(a=>`<div>${a} <button onclick="installApp('${a}')">Install</button></div>`).join('');
-createWindow('Store',list);
-}
-
-if(apps[app]) apps[app]();
-}
-
-function installApp(name){ alert(name+' installed'); }
-
-// -------- TERMINAL --------
-function runCmd(input){
-let cmd=input.value;
-let out=document.getElementById('term');
-
-if(cmd==='help') out.innerHTML+='help ls clear open';
-else if(cmd==='ls') out.innerHTML+=Object.keys(fileSystem).join('<br>');
-else if(cmd.startsWith('open ')) openApp(cmd.split(' ')[1]);
-else if(cmd==='clear') out.innerHTML='';
-else out.innerHTML+='unknown';
-
-out.innerHTML+='<br>';
 input.value='';
 }
 
-// -------- FILES --------
-function createFile(btn){
-let name=btn.previousElementSibling.value;
-fileSystem[name]=''; saveFS();
+function aiBrain(m){
+m = m.toLowerCase();
+
+if(m.includes('time')) return new Date().toLocaleTimeString();
+if(m.includes('open terminal')){ openApp('terminal'); return 'opening terminal'; }
+if(m.includes('open files')){ openApp('files'); return 'opening files'; }
+if(m.includes('open chat')){ openApp('chat'); return 'opening chat'; }
+
+return 'AI: '+m;
 }
 
-function openFile(name){
-createWindow(name,`<textarea oninput="saveFile('${name}',this.value)" class='w-full h-60 bg-black'>${fileSystem[name]}</textarea>`);
+function voiceAI(){
+if(!('webkitSpeechRecognition' in window)) return alert('no voice');
+let r = new webkitSpeechRecognition();
+r.onresult = e => {
+document.getElementById('aiInput').value = e.results[0][0].transcript;
+};
+r.start();
 }
 
-function saveFile(name,val){ fileSystem[name]=val; saveFS(); }
+// BROWSER (FULL ENGINE)
+function getBrowserBox(btn){ return btn.closest('.window'); }
+function ensureState(box){
+  if(!box.dataset.tabs){
+    box.dataset.tabs = localStorage.getItem('tabs') || JSON.stringify([{history:[], index:-1, url:''}]);
+    box.dataset.active = localStorage.getItem('activeTab') || 0;
+    box.dataset.bookmarks = localStorage.getItem('bookmarks') || JSON.stringify([]);
+  }
+}
+function saveState(box){
+  localStorage.setItem('tabs', box.dataset.tabs);
+  localStorage.setItem('activeTab', box.dataset.active);
+  localStorage.setItem('bookmarks', box.dataset.bookmarks);
+}
+function getState(box){ return JSON.parse(box.dataset.tabs); }
+function setState(box, tabs){ box.dataset.tabs = JSON.stringify(tabs); saveState(box); }
+function getActive(box){ return parseInt(box.dataset.active||0); }
+function setActive(box,i){ box.dataset.active = i; saveState(box); renderTabs(box); loadActive(box); }
 
-// -------- BROWSER --------
-function newTab(btn){
-let box=btn.closest('.window');
-let url=box.querySelector('.url').value;
-let frame=box.querySelector('iframe');
-if(!url.startsWith('http')) url='https://'+url;
-frame.src=url;
+function browserUI(){
+  return `
+  <div class='flex gap-1 mb-1'>
+    <button onclick='browserBack(this)'>◀</button>
+    <button onclick='browserForward(this)'>▶</button>
+    <button onclick='browserAddTab(this)'>＋</button>
+    <input class='url flex-1 bg-gray-800 p-1'>
+    <button onclick='browserGo(this)'>Go</button>
+    <button onclick='addBookmark(this)'>⭐</button>
+  </div>
+  <div id='tabBar' class='flex gap-1'></div>
+  <div id='bookmarkBar' class='flex gap-1 text-xs'></div>
+  <iframe class='w-full h-60 bg-white'></iframe>
+  `;
 }
 
-// -------- THEMES --------
-function changeBG(){
-bgIndex=(bgIndex+1)%bgs.length;
-document.getElementById('desktop').className=`w-screen h-screen bg-gradient-to-br ${bgs[bgIndex]} relative`;
+const _openApp2 = openApp;
+openApp = function(a){
+  if(a==='browser'){
+    win('Browser', browserUI());
+    const box = document.querySelector('#windows .window:last-child');
+    ensureState(box);
+    renderTabs(box);
+    renderBookmarks(box);
+    loadActive(box);
+    return;
+  }
+  _openApp2(a);
 }
 
-// -------- DRAG --------
-function makeDraggable(el){
-let down=false,ox=0,oy=0;
-let head=el.firstElementChild;
-head.onmousedown=e=>{down=true;ox=el.offsetLeft-e.clientX;oy=el.offsetTop-e.clientY;};
-document.onmouseup=()=>down=false;
-document.onmousemove=e=>{if(down){el.style.left=e.clientX+ox+'px';el.style.top=e.clientY+oy+'px';}};
+function normalizeURL(q){
+  if(!q) return '';
+  if(q.startsWith('http')) return q;
+  return 'https://duckduckgo.com/?q=' + encodeURIComponent(q);
 }
 
-// -------- AUTO LOGIN --------
-if(localStorage.getItem('user')){
+function proxify(url){
+  return 'http://localhost:3000/proxy?url=' + encodeURIComponent(url);
+}
+
+function browserGo(btn){
+  const box = getBrowserBox(btn); ensureState(box);
+  const input = box.querySelector('.url');
+  const frame = box.querySelector('iframe');
+  let url = normalizeURL(input.value.trim());
+  if(!url) return;
+
+  let tabs = getState(box);
+  let i = getActive(box);
+  let t = tabs[i];
+
+  t.history = t.history.slice(0, t.index+1);
+  t.history.push(url);
+  t.index++;
+  t.url = url;
+
+  setState(box, tabs);
+  frame.src = proxify(url);
+  renderTabs(box);
+}
+
+function loadActive(box){
+  const frame = box.querySelector('iframe');
+  const tabs = getState(box);
+  const i = getActive(box);
+  const t = tabs[i];
+  if(t && t.index>=0){ frame.src = proxify(t.history[t.index]); }
+}
+
+function browserBack(btn){
+  const box = getBrowserBox(btn); ensureState(box);
+  let tabs = getState(box);
+  let t = tabs[getActive(box)];
+  if(t.index>0){ t.index--; setState(box,tabs); loadActive(box); }
+}
+
+function browserForward(btn){
+  const box = getBrowserBox(btn); ensureState(box);
+  let tabs = getState(box);
+  let t = tabs[getActive(box)];
+  if(t.index < t.history.length-1){ t.index++; setState(box,tabs); loadActive(box); }
+}
+
+function browserAddTab(btn){
+  const box = getBrowserBox(btn); ensureState(box);
+  let tabs = getState(box);
+  tabs.push({history:[], index:-1, url:''});
+  setState(box,tabs);
+  setActive(box, tabs.length-1);
+}
+
+function closeTab(box, idx){
+  let tabs = getState(box);
+  if(tabs.length===1) return;
+  tabs.splice(idx,1);
+  setState(box,tabs);
+  setActive(box, Math.min(idx, tabs.length-1));
+}
+
+function renderTabs(box){
+  const bar = box.querySelector('#tabBar'); if(!bar) return;
+  const tabs = getState(box);
+  const active = getActive(box);
+  bar.innerHTML = tabs.map((t,i)=>`<button class='px-2 ${i===active?'bg-blue-600':'bg-gray-700'}' onclick='setActive(this.closest(".window"),${i})'>Tab ${i+1} <span onclick='event.stopPropagation();closeTab(this.closest(".window"),${i})'>✖</span></button>`).join('');
+}
+
+// BOOKMARKS
+function addBookmark(btn){
+  const box = getBrowserBox(btn); ensureState(box);
+  const tabs = getState(box); const t = tabs[getActive(box)];
+  if(!t.url) return;
+  let b = JSON.parse(box.dataset.bookmarks);
+  if(!b.includes(t.url)) b.push(t.url);
+  box.dataset.bookmarks = JSON.stringify(b);
+  saveState(box);
+  renderBookmarks(box);
+}
+
+function renderBookmarks(box){
+  const bar = box.querySelector('#bookmarkBar'); if(!bar) return;
+  let b = JSON.parse(box.dataset.bookmarks||'[]');
+  bar.innerHTML = b.map(u=>`<button onclick='openBookmark(this,"${u}")'>★</button>`).join('');
+}
+
+function openBookmark(btn, url){
+  const box = getBrowserBox(btn);
+  box.querySelector('.url').value = url;
+  browserGo(btn);
+}
+
+// DOWNLOADS (basic)
+let downloads = JSON.parse(localStorage.getItem('downloads')||'[]');
+function addDownload(name,url){
+  downloads.push({name,url,time:Date.now()});
+  localStorage.setItem('downloads', JSON.stringify(downloads));
+}
+function openDownloads(){
+  win('Downloads', downloads.map(d=>`<div><a href='${d.url}' target='_blank'>${d.name}</a></div>`).join('')||'No downloads');
+}
+
+// Hook downloads when navigating
+(function(){
+  const oldGo = browserGo;
+  window.browserGo = function(btn){
+    const box = getBrowserBox(btn);
+    const input = box.querySelector('.url');
+    const val = input.value.trim();
+    if(/\.(zip|pdf|png|jpg|mp4)$/i.test(val)){
+      addDownload(val, val.startsWith('http')?val:'https://'+val);
+    }
+    return oldGo(btn);
+  }
+})();
+
+// SHARED BROWSING (broadcast active tab URL)
+function broadcastTab(box){
+  if(!socket) return;
+  const tabs = JSON.parse(box.dataset.tabs||'[]');
+  const i = parseInt(box.dataset.active||0);
+  const t = tabs[i];
+  if(t && t.url){
+    socket.send(JSON.stringify({type:'tab', user: username, url: t.url}));
+  }
+}
+
+// extend setActive to broadcast
+(function(){
+  const oldSetActive = setActive;
+  window.setActive = function(box,i){
+    oldSetActive(box,i);
+    broadcastTab(box);
+  }
+})();
+
+// receive shared tabs
+(function(){
+  const oldConnect = connectSocket;
+  window.connectSocket = function(){
+    oldConnect();
+    if(!socket) return;
+    socket.addEventListener('message', (e)=>{
+      try{
+        const data = JSON.parse(e.data);
+        if(data.type==='tab'){
+          const el = document.getElementById('usersOnline');
+          if(el){ el.title = `Last shared: ${data.user} → ${data.url}`; }
+        }
+      }catch{}
+    });
+  }
+})();
+
+// Add Downloads icon
+(function(){
+  const desk = document.querySelector('#desktop .p-4');
+  if(desk && !document.getElementById('dlIcon')){
+    const d = document.createElement('div');
+    d.id='dlIcon';
+    d.className='icon';
+    d.onclick = openDownloads;
+    d.textContent='📥 Downloads';
+    desk.appendChild(d);
+  }
+})();
+
+// CHAT
+function sendChat(){
+let input = document.getElementById('chatInput');
+if(!input) return;
+let m=input.value;
+if(socket) socket.send(JSON.stringify({type:'chat', user:username, msg:m}));
+input.value='';
+}
+
+// FILES
+let fs={};
+function newFile(){let n=prompt('name');fs[n]='';renderFiles();}
+function renderFiles(){
+let el=document.getElementById('files');
+if(!el) return;
+el.innerHTML=Object.keys(fs).map(f=>`<div>${f}</div>`).join('');
+}
+
+// TERMINAL
+function cmd(i){if(i.value==='ai') openApp('ai'); i.value='';}
+
+// DRAG
+function drag(el){let d=0,ox,oy;el.firstChild.onmousedown=e=>{d=1;ox=el.offsetLeft-e.clientX;oy=el.offsetTop-e.clientY};document.onmouseup=()=>d=0;document.onmousemove=e=>{if(d){el.style.left=e.clientX+ox+'px';el.style.top=e.clientY+oy+'px'}}}
+
+// AUTO LOGIN
+window.onload = ()=>{
+const saved = localStorage.getItem('user');
+if(saved){
+username = saved;
 document.getElementById('login').style.display='none';
 document.getElementById('desktop').classList.remove('hidden');
+document.getElementById('userLabel').innerText='🔥 '+username.toUpperCase()+' 🔥';
+connectSocket();
 }
-</script>
+};
 
+</script>
 </body>
 </html>
