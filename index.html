@@ -28,7 +28,6 @@ body { margin:0; overflow:hidden; font-family:sans-serif; }
 <!-- DESKTOP -->
 <div id="desktop" class="hidden w-screen h-screen bg-gradient-to-br from-gray-900 to-black relative">
 
-<!-- Icons -->
 <div class="p-4 space-y-4">
 <div class="icon" onclick="openApp('terminal')">🖥️ Terminal</div>
 <div class="icon" onclick="openApp('files')">📁 Files</div>
@@ -37,7 +36,6 @@ body { margin:0; overflow:hidden; font-family:sans-serif; }
 <div class="icon" onclick="changeBG()">🎨 Theme</div>
 </div>
 
-<!-- Taskbar -->
 <div class="absolute bottom-0 w-full h-12 bg-gray-800 flex items-center px-4 gap-3">
 <span id="userLabel"></span>
 <div id="taskbarApps" class="flex gap-2"></div>
@@ -49,8 +47,7 @@ body { margin:0; overflow:hidden; font-family:sans-serif; }
 <div id="windows"></div>
 
 <script>
-// -------- LOGIN --------
-// -------- ADVANCED LOGIN SYSTEM --------
+// -------- LOGIN SYSTEM --------
 let attempts = 0;
 
 function login(){
@@ -61,7 +58,6 @@ let msg=document.getElementById('loginMsg');
 const USERNAME="admin";
 const PASSWORD="1234";
 
-// lockout after 3 attempts
 if(attempts >= 3){
   msg.innerText = "SYSTEM LOCKED";
   return;
@@ -70,63 +66,33 @@ if(attempts >= 3){
 if(name!==USERNAME || pass!==PASSWORD){
   attempts++;
   msg.innerText = `ACCESS DENIED (${attempts}/3)`;
-
-  // fake hacking effect
   msg.classList.add('animate-pulse');
   document.body.classList.add('bg-red-900');
-
-  setTimeout(()=>{
-    document.body.classList.remove('bg-red-900');
-  },300);
-
+  setTimeout(()=>document.body.classList.remove('bg-red-900'),300);
   return;
 }
 
-// success animation
 msg.innerText = "ACCESS GRANTED";
 msg.classList.remove('text-red-500');
 msg.classList.add('text-green-400');
 
 setTimeout(()=>{
-let styledName = `🔥 ${name.toUpperCase()} 🔥`;
-localStorage.setItem('user',name);
+  let styledName = `🔥 ${name.toUpperCase()} 🔥`;
+  localStorage.setItem('user',name);
 
-document.getElementById('login').style.display='none';
-document.getElementById('desktop').classList.remove('hidden');
+  document.getElementById('login').style.display='none';
+  document.getElementById('desktop').classList.remove('hidden');
 
-let label = document.getElementById('userLabel');
-label.innerText = styledName;
-label.classList.add('font-bold','text-yellow-400','tracking-widest');
+  let label = document.getElementById('userLabel');
+  label.innerText = styledName;
+  label.classList.add('font-bold','text-yellow-400','tracking-widest');
 },800);
 }
 
-// optional: reset lock after reload
 window.onload = () => { attempts = 0; };
-
-let styledName = `🔥 ${name.toUpperCase()} 🔥`;
-localStorage.setItem('user',name);
-
-document.getElementById('login').style.display='none';
-document.getElementById('desktop').classList.remove('hidden');
-
-let label = document.getElementById('userLabel');
-label.innerText = styledName;
-label.classList.add('font-bold','text-yellow-400','tracking-widest');
-} 🔥`;
-
-localStorage.setItem('user',name);
-document.getElementById('login').style.display='none';
-document.getElementById('desktop').classList.remove('hidden');
-
-let label = document.getElementById('userLabel');
-label.innerText = styledName;
-label.classList.add('font-bold','text-yellow-400','tracking-widest');
-
-}
 
 // -------- STATE --------
 let zIndex=1;
-let taskbar=[];
 let fileSystem=JSON.parse(localStorage.getItem('fs')||'{}');
 let bgIndex=0;
 const bgs=["from-gray-900 to-black","from-blue-900 to-black","from-purple-900 to-black"];
@@ -162,11 +128,7 @@ addTaskbar(title,win);
 }
 
 function closeWin(btn){btn.closest('.window').remove();}
-
-function minWin(btn){
-let w=btn.closest('.window');
-w.style.display='none';
-}
+function minWin(btn){btn.closest('.window').style.display='none';}
 
 function addTaskbar(title,win){
 let btn=document.createElement('button');
@@ -181,7 +143,6 @@ calculator:()=>createWindow('Calculator',`<input oninput="this.value=eval(this.v
 };
 
 function openApp(app){
-
 if(app==='terminal'){
 createWindow('Terminal',`<div id='term'></div><input id='cmd' class='w-full bg-black'>`);
 setTimeout(()=>{
@@ -190,14 +151,7 @@ document.getElementById('cmd').onkeydown=e=>{if(e.key==='Enter') runCmd(e.target
 }
 
 if(app==='browser'){
-createWindow('Browser',`
-<div class='flex gap-2 mb-2'>
-<input class='url bg-black flex-1'>
-<button onclick='newTab(this)'>New Tab</button>
-</div>
-<div class='tabs'></div>
-<iframe class='w-full h-80 bg-white'></iframe>
-`);
+createWindow('Browser',`<input class='url bg-black w-full'><button onclick='newTab(this)'>Go</button><iframe class='w-full h-80 bg-white'></iframe>`);
 }
 
 if(app==='files'){
@@ -266,9 +220,10 @@ document.onmouseup=()=>down=false;
 document.onmousemove=e=>{if(down){el.style.left=e.clientX+ox+'px';el.style.top=e.clientY+oy+'px';}};
 }
 
-// AUTO LOGIN IF SAVED
+// -------- AUTO LOGIN --------
 if(localStorage.getItem('user')){
-login();
+document.getElementById('login').style.display='none';
+document.getElementById('desktop').classList.remove('hidden');
 }
 </script>
 
