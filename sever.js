@@ -1,15 +1,26 @@
-const express = require("express");
-const cors = require("cors");
-const fetch = require("node-fetch");
-const path = require("path");
+function navigate(url) {
+  if (!currentTab) return;
 
-const app = express();
+  if (!url.startsWith("http")) {
+    url = "https://www.google.com/search?q=" + encodeURIComponent(url);
+  }
 
-app.use(cors());
+  currentTab.frame.src = "/proxy?url=" + encodeURIComponent(url);
 
-// 🔥 THIS LINE IS CRITICAL
-app.use(express.static(path.join(__dirname, "public")));
+  // Set temporary title
+  currentTab.tab.querySelector(".title").textContent = "Loading...";
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-});
+  // Favicon (Google service)
+  const favicon = document.createElement("img");
+  favicon.src = "https://www.google.com/s2/favicons?domain=" + url;
+  favicon.style.width = "16px";
+  favicon.style.height = "16px";
+
+  const tabEl = currentTab.tab;
+
+  // Remove old icon if exists
+  const oldIcon = tabEl.querySelector("img");
+  if (oldIcon) oldIcon.remove();
+
+  tabEl.prepend(favicon);
+}
