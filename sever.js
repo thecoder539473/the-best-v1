@@ -1,26 +1,39 @@
-function navigate(url) {
-  if (!currentTab) return;
+const express = require("express");
+const fetch = require("node-fetch");
 
-  if (!url.startsWith("http")) {
-    url = "https://www.google.com/search?q=" + encodeURIComponent(url);
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Serve frontend
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/index.html");
+});
+
+// Proxy
+app.get("/proxy", async (req, res) => {
+  let url = req.query.url;
+  if (!url) return res.send("Missing URL");
+
+  try {
+    const response = await fetch(url);
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+    let body = await response.text();
+
+    body = body.replace(
+      /<head>/i,
+      `<head><base href="${url}">`
+    );
+
+    res.send(body);
+  } catch (err) {
+    res.send("Error: " + err.message);
   }
+});
 
-  currentTab.frame.src = "/proxy?url=" + encodeURIComponent(url);
-
-  // Set temporary title
-  currentTab.tab.querySelector(".title").textContent = "Loading...";
-
-  // Favicon (Google service)
-  const favicon = document.createElement("img");
-  favicon.src = "https://www.google.com/s2/favicons?domain=" + url;
-  favicon.style.width = "16px";
-  favicon.style.height = "16px";
-
-  const tabEl = currentTab.tab;
-
-  // Remove old icon if exists
-  const oldIcon = tabEl.querySelector("img");
-  if (oldIcon) oldIcon.remove();
-
-  tabEl.prepend(favicon);
-}
+app.listen(PORT, () => {
+  console.log("Running on port " + PORT);
+});
