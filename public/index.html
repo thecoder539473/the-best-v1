@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TheBest</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#202124;color:white}
+#tabs{display:flex;background:#171717;padding:6px;gap:6px}
+.tab{background:#2d2d2d;padding:6px 12px;border-radius:10px;cursor:pointer}
+.tab.active{background:#3c4043}
+#newtab{cursor:pointer;padding:0 10px;font-size:20px}
+#bar{background:#303134;padding:8px}
+#url{width:100%;padding:10px;border:none;border-radius:30px;outline:none}
+iframe{width:100%;height:calc(100vh - 90px);border:none;background:white}
+</style>
+</head>
+
+<body>
+
+<div id="tabs">
+<div class="tab active">New Tab</div>
+<div id="newtab">+</div>
+</div>
+
+<div id="bar">
+<input id="url" placeholder="Search or type URL">
+</div>
+
+<iframe id="frame"></iframe>
+
+<script>
+const frame = document.getElementById("frame")
+const url = document.getElementById("url")
+
+function go(input){
+let site = input.trim()
+
+if(site.includes(".")){
+if(!site.startsWith("http")){
+site = "https://" + site
+}
+}else{
+site = "https://duckduckgo.com/?q=" + encodeURIComponent(site)
+}
+
+frame.src = "/proxy?url=" + encodeURIComponent(site)
+}
+
+url.addEventListener("keydown", e=>{
+if(e.key==="Enter"){
+go(url.value)
+}
+})
+</script>
+
+</body>
+</html>
