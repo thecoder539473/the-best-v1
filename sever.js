@@ -5,10 +5,10 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve frontend
+// Serve public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// Force index.html on root
+// Homepage route (fixes "Not Found")
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -16,7 +16,6 @@ app.get("/", (req, res) => {
 // Proxy route
 app.get("/proxy", async (req, res) => {
   let url = req.query.url;
-
   if (!url) return res.send("Missing URL");
 
   try {
